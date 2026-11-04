@@ -14,6 +14,7 @@ import { ArchDiagram } from '../web/src/pages/HowPage.tsx';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const [scriptFile, work, outFile, ...flags] = process.argv.slice(2);
 const preview = (flags.find((f) => f.startsWith('--preview=')) || '').split('=')[1];
+const audioOnly = flags.includes('--audio-only');
 const script = JSON.parse(readFileSync(scriptFile, 'utf8'));
 const FPS = script.fps ?? 30;
 
@@ -154,10 +155,11 @@ if (preview) {
 }
 
 const silent = path.join(work, 'video-silent.mp4');
+const t0 = Date.now();
+if (!audioOnly) {
 const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS), '-c:v', 'mjpeg', '-i', '-',
   '-c:v', 'libx264', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-r', String(FPS), silent], { stdio: ['pipe', 'inherit', 'inherit'] });
 const nFrames = Math.ceil(total * FPS);
-const t0 = Date.now();
 for (let f = 0; f < nFrames; f++) {
   await page.evaluate((x) => window.renderAt(x), f / FPS);
   const buf = await page.screenshot({ type: 'jpeg', quality: 93 });
@@ -166,6 +168,7 @@ for (let f = 0; f < nFrames; f++) {
 }
 ff.stdin.end();
 await new Promise((r) => ff.on('close', r));
+}
 await browser.close();
 
 // ---------------------------------------------------------------- audio
@@ -174,10 +177,10 @@ const args = ['-y', '-loglevel', 'error', '-i', silent];
 voiced.forEach((s) => args.push('-i', path.join(work, 'tts', `${s.id}.mp3`)));
 args.push('-i', script.music);
 const n = voiced.length;
-const parts = voiced.map((s, i) => `[${i + 1}:a]aresample=48000,adelay=${Math.round(s.voiceAt * 1000)}:all=1[v${i}]`);
+const parts = voiced.map((s, i) => `[${i + 1}:a]aresample=48000,aformat=channel_layouts=stereo,adelay=${Math.round(s.voiceAt * 1000)}:all=1[v${i}]`);
 const mix = `${voiced.map((_, i) => `[v${i}]`).join('')}amix=inputs=${n}:normalize=0:dropout_transition=0,apad,atrim=0:${total.toFixed(2)}[voice]`;
-const music = `[${n + 1}:a]aresample=48000,atrim=0:${total.toFixed(2)},afade=t=in:st=0:d=1.5,afade=t=out:st=${(total - 3).toFixed(2)}:d=3,volume=0.55[mus]`;
-const duck = `[voice]asplit=2[vk][vm];[mus][vk]sidechaincompress=threshold=0.03:ratio=9:attack=15:release=420[ducked];[vm][ducked]amix=inputs=2:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11[aout]`;
+const music = `[${n + 1}:a]aresample=48000,aformat=channel_layouts=stereo,atrim=0:${total.toFixed(2)},afade=t=in:st=0:d=1.5,afade=t=out:st=${(total - 3).toFixed(2)}:d=3,volume=0.55[mus]`;
+const duck = `[voice]asplit=2[vk][vm];[mus][vk]sidechaincompress=threshold=0.03:ratio=9:attack=15:release=420[ducked];[vm][ducked]amix=inputs=2:normalize=0,loudnorm=I=-16:TP=-1.5:LRA=11,aresample=48000,aformat=sample_rates=48000:channel_layouts=stereo[aout]`;
 args.push('-filter_complex', [...parts, mix, music, duck].join(';'), '-map', '0:v', '-map', '[aout]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', outFile);
 await new Promise((resolve, reject) => {
   const p = spawn('ffmpeg', args, { stdio: 'inherit' });
