@@ -374,10 +374,14 @@ h1, h2, h3 { font-family: var(--display); letter-spacing: -.02em; margin: 0; }
 @media (max-width: 1100px) {
   .app-run main { height: auto; overflow: visible; }
   .run { height: auto; }
-  .run-grid { grid-template-columns: 1fr; }
+  .run-grid { grid-template-columns: minmax(0, 1fr); }
+  .run-left, .run-right, .tub, .browser { min-width: 0; }
   .run-right { min-height: 0; }
   .timeline { max-height: 520px; }
   .run-header { flex-direction: column; align-items: flex-start; }
+  .run-meta { flex-wrap: wrap; }
+  .result { position: relative; left: auto; right: auto; bottom: auto; margin: 0; width: auto; grid-template-columns: 1fr; }
+  .result-reopen { position: static; }
 }
 @media (max-width: 860px) {
   .nav { gap: 12px; padding: 0 16px; }
@@ -406,6 +410,13 @@ h1, h2, h3 { font-family: var(--display); letter-spacing: -.02em; margin: 0; }
   .run-title h1 { font-size: 21px; }
   .teaser-stats, .compare-stats, .blast-grid { grid-template-columns: 1fr 1fr; }
   .tub-badges { display: none; }
+  .drained-overlay { white-space: normal; width: calc(100% - 24px); justify-content: center; text-align: center; font-size: 12.5px; }
+  .result { padding: 14px; }
+  .result-title { font-size: 17px; }
+  .blast-grid div { white-space: normal; }
+  .run-title .pill { white-space: normal; }
+  .f-stock { display: none; }
+  .findings td { padding: 5px 3px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
