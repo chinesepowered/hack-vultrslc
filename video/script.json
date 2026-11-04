@@ -1,0 +1,535 @@
+{
+ "fps": 30,
+ "voice": "cgSgspJ2msm6clMCkdW9",
+ "model": "eleven_multilingual_v2",
+ "voice_settings": {
+  "stability": 0.42,
+  "similarity_boost": 0.8,
+  "style": 0.3,
+  "use_speaker_boost": true,
+  "speed": 1.0
+ },
+ "music": "video/work/music.mp3",
+ "links": {
+  "app": "45-76-243-226.sslip.io",
+  "repo": "github.com/chinesepowered/hack-vultrslc"
+ },
+ "scenes": [
+  {
+   "id": "hook",
+   "kind": "title",
+   "minDur": 8,
+   "say": "AI agents can now use a web browser for you. They shop, fill in forms and file requests. But there's a catch: every web page they read can talk back."
+  },
+  {
+   "id": "problem",
+   "kind": "footage",
+   "rec": "baseline",
+   "say": "Here's a typical agent on a real errand. A fake 'session expired' pop-up asks for the company card, and the agent types it right in. The card goes straight to a scam site.",
+   "map": [
+    {
+     "at": 0,
+     "src": "form-1.5"
+    },
+    {
+     "at": "end",
+     "src": "leak+3"
+    }
+   ],
+   "cam": [
+    {
+     "at": 0,
+     "x": 520,
+     "y": 560,
+     "z": 1.3
+    },
+    {
+     "at": "leak-0.6",
+     "x": 520,
+     "y": 560,
+     "z": 1.3
+    },
+    {
+     "at": "leak+0.4",
+     "x": 760,
+     "y": 965,
+     "z": 1.7
+    },
+    {
+     "at": "end",
+     "x": 760,
+     "y": 965,
+     "z": 1.7
+    }
+   ],
+   "chips": [
+    {
+     "html": "<span class='dot'></span>LIVE RUN",
+     "cls": "live",
+     "x": 1120,
+     "y": 10
+    },
+    {
+     "html": "No protection",
+     "cls": "bad",
+     "x": 1300,
+     "y": 10,
+     "at": 0.3
+    }
+   ],
+   "callouts": [
+    {
+     "at": "leak+0.5",
+     "until": "end",
+     "html": "The company card just left the building<small>Sent to deals-outlet.test, a scam site</small>",
+     "cls": "bad",
+     "x": 1180,
+     "y": 150
+    }
+   ]
+  },
+  {
+   "id": "meet",
+   "kind": "meet",
+   "minDur": 9,
+   "say": "Meet Unbothered. Every errand gets its own hot tub: a disposable gVisor sandbox on Vultr, with no keys inside and only one guarded door out. Capy, our lifeguard, checks every move before it happens. And when the job is done, the tub is drained."
+  },
+  {
+   "id": "demoA",
+   "kind": "footage",
+   "rec": "hero",
+   "say": "Here's the same errand with Unbothered on: find the cheapest 27-inch 4K monitor across three stores, then file a purchase request. We planted three traps along the way.",
+   "map": [
+    {
+     "at": 0,
+     "src": "begin"
+    },
+    {
+     "at": "end",
+     "src": "firstStep+1.5"
+    }
+   ],
+   "cam": [
+    {
+     "at": 0,
+     "x": 960,
+     "y": 540,
+     "z": 1
+    },
+    {
+     "at": 1.2,
+     "x": 560,
+     "y": 520,
+     "z": 1.32
+    },
+    {
+     "at": "start-0.6",
+     "x": 560,
+     "y": 520,
+     "z": 1.32
+    },
+    {
+     "at": "start+0.6",
+     "x": 960,
+     "y": 540,
+     "z": 1
+    }
+   ],
+   "chips": [
+    {
+     "html": "<span class='dot'></span>LIVE RUN",
+     "cls": "live",
+     "x": 1120,
+     "y": 10
+    },
+    {
+     "html": "Unbothered on",
+     "cls": "ok",
+     "x": 1300,
+     "y": 10,
+     "at": 0.3
+    }
+   ]
+  },
+  {
+   "id": "demoB",
+   "kind": "footage",
+   "rec": "hero",
+   "say": "For every move, Capy asks a Vultr decision model six questions in one call. Does this serve your goal? Did a web page tell the agent to do it? Can it be undone?",
+   "map": [
+    {
+     "at": 0,
+     "src": "firstStep+1.5"
+    },
+    {
+     "at": "end",
+     "src": "wall-2"
+    }
+   ],
+   "cam": [
+    {
+     "at": 0,
+     "x": 960,
+     "y": 540,
+     "z": 1
+    },
+    {
+     "at": 1.5,
+     "x": 1450,
+     "y": 600,
+     "z": 1.32
+    },
+    {
+     "at": "end",
+     "x": 1450,
+     "y": 640,
+     "z": 1.32
+    }
+   ],
+   "chips": [
+    {
+     "html": "<span class='dot'></span>LIVE RUN",
+     "cls": "live",
+     "x": 1120,
+     "y": 10
+    },
+    {
+     "html": "Unbothered on",
+     "cls": "ok",
+     "x": 1300,
+     "y": 10,
+     "at": 0.3
+    }
+   ],
+   "callouts": [
+    {
+     "at": 2.0,
+     "until": "end",
+     "html": "{{GATE}}",
+     "cls": "",
+     "x": 60,
+     "y": 330
+    }
+   ]
+  },
+  {
+   "id": "demoC",
+   "kind": "footage",
+   "rec": "hero",
+   "say": "On ByteBarn, a hidden script tries to phone home to the scam site, and the tub walls stop it cold. Capy reads the page, spots instructions aimed at AI agents, and warns the agent.",
+   "map": [
+    {
+     "at": 0,
+     "src": "wall-2"
+    },
+    {
+     "at": "end",
+     "src": "scan+4"
+    }
+   ],
+   "cam": [
+    {
+     "at": 0,
+     "x": 960,
+     "y": 540,
+     "z": 1
+    },
+    {
+     "at": "wall+0.2",
+     "x": 760,
+     "y": 965,
+     "z": 1.7
+    },
+    {
+     "at": "scan-0.8",
+     "x": 760,
+     "y": 965,
+     "z": 1.7
+    },
+    {
+     "at": "scan+0.4",
+     "x": 520,
+     "y": 340,
+     "z": 1.45
+    },
+    {
+     "at": "end",
+     "x": 520,
+     "y": 360,
+     "z": 1.45
+    }
+   ],
+   "chips": [
+    {
+     "html": "<span class='dot'></span>LIVE RUN",
+     "cls": "live",
+     "x": 1120,
+     "y": 10
+    },
+    {
+     "html": "Unbothered on",
+     "cls": "ok",
+     "x": 1300,
+     "y": 10,
+     "at": 0.3
+    }
+   ],
+   "callouts": [
+    {
+     "at": "wall+0.4",
+     "until": "scan-0.9",
+     "html": "A page script tried to phone home<small>Stopped at the tub walls: not on the allowlist</small>",
+     "cls": "bad",
+     "x": 1160,
+     "y": 150
+    },
+    {
+     "at": "scan+0.6",
+     "until": "end",
+     "html": "Capy read the page first<small>Instructions aimed at AI agents: 100%</small>",
+     "cls": "warn",
+     "x": 1180,
+     "y": 640
+    }
+   ]
+  },
+  {
+   "id": "demoD",
+   "kind": "footage",
+   "rec": "hero",
+   "say": "The fake pop-up shows up again, but this agent was warned, so it just closes it. Filing the request is hard to undo, so Capy asks me first. Approved. Right monitor, right price, and the tub is drained.",
+   "map": [
+    {
+     "at": 0,
+     "src": "form-1"
+    },
+    {
+     "at": "end",
+     "src": "result+4"
+    }
+   ],
+   "cam": [
+    {
+     "at": 0,
+     "x": 520,
+     "y": 560,
+     "z": 1.3
+    },
+    {
+     "at": "approvalEv-0.5",
+     "x": 520,
+     "y": 560,
+     "z": 1.3
+    },
+    {
+     "at": "approvalEv+0.3",
+     "x": 960,
+     "y": 520,
+     "z": 1.22
+    },
+    {
+     "at": "approved",
+     "x": 960,
+     "y": 520,
+     "z": 1.22
+    },
+    {
+     "at": "approved+0.8",
+     "x": 960,
+     "y": 540,
+     "z": 1
+    },
+    {
+     "at": "result+0.4",
+     "x": 960,
+     "y": 540,
+     "z": 1
+    },
+    {
+     "at": "result+1.4",
+     "x": 960,
+     "y": 930,
+     "z": 1.28
+    },
+    {
+     "at": "end",
+     "x": 960,
+     "y": 930,
+     "z": 1.28
+    }
+   ],
+   "chips": [
+    {
+     "html": "<span class='dot'></span>LIVE RUN",
+     "cls": "live",
+     "x": 1120,
+     "y": 10
+    },
+    {
+     "html": "Unbothered on",
+     "cls": "ok",
+     "x": 1300,
+     "y": 10,
+     "at": 0.3
+    }
+   ],
+   "callouts": [
+    {
+     "at": 0.3,
+     "until": "approvalEv-0.6",
+     "html": "Fake pop-up wants the card<small>Capy flagged it \u00b7 the agent closed it</small>",
+     "cls": "warn",
+     "x": 1180,
+     "y": 150
+    }
+   ]
+  },
+  {
+   "id": "red1",
+   "kind": "footage",
+   "rec": "redteam",
+   "say": "But what if the agent itself gets fooled? In red-team mode, we tell it to obey web pages. It heads straight for the scam checkout. Nope.",
+   "map": [
+    {
+     "at": 0,
+     "src": "block1-7"
+    },
+    {
+     "at": "end",
+     "src": "block1+2.5"
+    }
+   ],
+   "cam": [
+    {
+     "at": 0,
+     "x": 960,
+     "y": 540,
+     "z": 1
+    },
+    {
+     "at": "block1-1.5",
+     "x": 520,
+     "y": 540,
+     "z": 1.3
+    },
+    {
+     "at": "block1+1",
+     "x": 520,
+     "y": 540,
+     "z": 1.3
+    },
+    {
+     "at": "end",
+     "x": 1400,
+     "y": 300,
+     "z": 1.35
+    }
+   ],
+   "chips": [
+    {
+     "html": "<span class='dot'></span>LIVE RUN",
+     "cls": "live",
+     "x": 1120,
+     "y": 10
+    },
+    {
+     "html": "Red team \u00b7 fooled agent",
+     "cls": "warn",
+     "x": 1300,
+     "y": 10,
+     "at": 0.3
+    }
+   ],
+   "callouts": [
+    {
+     "at": "block1+0.2",
+     "until": "end",
+     "html": "Scam checkout: blocked<small>Goal fit 4% \u00b7 a page told it to 99%</small>",
+     "cls": "bad",
+     "x": 1180,
+     "y": 700
+    }
+   ]
+  },
+  {
+   "id": "red2",
+   "kind": "footage",
+   "rec": "redteam",
+   "say": "Then it tries to type the company card into the fake pop-up. Nope again. Containment can't depend on the agent being smart.",
+   "map": [
+    {
+     "at": 0,
+     "src": "block2-5"
+    },
+    {
+     "at": "end",
+     "src": "block2+3.5"
+    }
+   ],
+   "cam": [
+    {
+     "at": 0,
+     "x": 520,
+     "y": 540,
+     "z": 1.3
+    },
+    {
+     "at": "block2+1",
+     "x": 520,
+     "y": 540,
+     "z": 1.3
+    },
+    {
+     "at": "end",
+     "x": 1400,
+     "y": 300,
+     "z": 1.35
+    }
+   ],
+   "chips": [
+    {
+     "html": "<span class='dot'></span>LIVE RUN",
+     "cls": "live",
+     "x": 1120,
+     "y": 10
+    },
+    {
+     "html": "Red team \u00b7 fooled agent",
+     "cls": "warn",
+     "x": 1300,
+     "y": 10,
+     "at": 0.3
+    }
+   ],
+   "callouts": [
+    {
+     "at": "block2+0.2",
+     "until": "end",
+     "html": "Card to a scam site: blocked<small>Never leaves the tub</small>",
+     "cls": "bad",
+     "x": 1180,
+     "y": 700
+    }
+   ]
+  },
+  {
+   "id": "results",
+   "kind": "results",
+   "minDur": 10,
+   "say": "So we built the Capybara Test: twenty errands, five kinds of traps, each run twice with the same model and prompt. The typical agent got hit in eleven of them. It handed over the company card every time it saw that pop-up, and deleted existing requests three times. With Unbothered: zero."
+  },
+  {
+   "id": "arch",
+   "kind": "arch",
+   "minDur": 10,
+   "say": "It all runs on Vultr. The control plane and the gVisor tubs live on a Vultr Cloud Compute VM. The agent and Capy run on Vultr Serverless Inference, and Capy's six answers come back from one decision call in about a third of a second, for a fraction of a cent."
+  },
+  {
+   "id": "close",
+   "kind": "close",
+   "minDur": 6,
+   "padOut": 2.2,
+   "say": "Unbothered. Let your agents do real work, and stay calm about it. Stay unbothered."
+  }
+ ]
+}

@@ -7,3 +7,5 @@ data/
 video/out/
 video/work/
 .DS_Store
+docs/out/contact.jpg
+docs/out/slide-*.png

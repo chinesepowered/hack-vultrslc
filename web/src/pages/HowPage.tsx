@@ -56,7 +56,7 @@ export function HowPage() {
   );
 }
 
-function ArchDiagram({ gate, agent }: { gate: string; agent: string }) {
+export function ArchDiagram({ gate, agent }: { gate: string; agent: string }) {
   return (
     <svg viewBox="0 0 1100 440" className="arch-svg" role="img" aria-label="Architecture diagram">
       <defs>
