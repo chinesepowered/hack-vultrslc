@@ -1,0 +1,6 @@
+[Unit]
+Description=Unbothered pull-based deploy
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/unbothered-deploy
