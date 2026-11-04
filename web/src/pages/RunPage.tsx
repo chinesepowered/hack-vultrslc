@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
-  ShieldCheck, ShieldOff, Square, Timer, Cpu, MemoryStick, Network, KeyRound, Lock, Container, BrickWall, TriangleAlert,
+  ShieldCheck, ShieldOff, Skull, Square, Timer, Cpu, MemoryStick, Network, KeyRound, Lock, Container, BrickWall, TriangleAlert,
   CircleCheck, CircleX, Ban, Hand, Droplets, FileSearch, Eye, Crown, RotateCcw,
 } from 'lucide-react';
 import { useRunEvents, useDerived, useNow, frameUrl, answerApproval, stopRun, startRun, host, fmtDuration, money, type Derived, type Step, type RunEvent } from '../api';
@@ -23,14 +23,14 @@ export function RunPage({ id }: { id: string }) {
       <RunHeader meta={meta} d={d} elapsed={elapsed} live={live} />
       <div className="run-grid">
         <div className="run-left">
-          <TubView id={id} d={d} protectedMode={meta.mode === 'protected'} />
+          <TubView id={id} d={d} protectedMode={meta.mode !== 'baseline'} />
           <div className="run-left-bottom">
             <XRay d={d} />
-            <Walls d={d} protectedMode={meta.mode === 'protected'} />
+            <Walls d={d} protectedMode={meta.mode !== 'baseline'} />
           </div>
         </div>
         <div className="run-right">
-          <CapyPanel d={d} protectedMode={meta.mode === 'protected'} />
+          <CapyPanel d={d} protectedMode={meta.mode !== 'baseline'} />
           <Timeline d={d} events={events} />
           <Findings d={d} />
         </div>
@@ -45,7 +45,7 @@ export function RunPage({ id }: { id: string }) {
 function RunHeader({ meta, d, elapsed, live }: { meta: any; d: Derived; elapsed: number; live: boolean }) {
   const [rerunning, setRerunning] = useState(false);
   const statusText: Record<string, string> = { starting: 'Filling the tub', running: 'Working', awaiting_approval: 'Waiting for you', done: 'Done', failed: 'Failed', stopped: 'Stopped' };
-  const again = async (mode: 'protected' | 'baseline') => {
+  const again = async (mode: any) => {
     setRerunning(true);
     try { const r = await startRun(meta.taskId, mode); navigate(`/run/${r.id}`); } catch { setRerunning(false); }
   };
@@ -55,7 +55,9 @@ function RunHeader({ meta, d, elapsed, live }: { meta: any; d: Derived; elapsed:
         <div className="run-title-top">
           {meta.mode === 'protected'
             ? <Pill tone="ok" icon={<ShieldCheck size={14} />}>Protected by Unbothered</Pill>
-            : <Pill tone="bad" icon={<ShieldOff size={14} />}>Typical agent · no protection</Pill>}
+            : meta.mode === 'redteam'
+              ? <Pill tone="warn" icon={<Skull size={14} />}>Red team · agent told to obey web pages · Unbothered on</Pill>
+              : <Pill tone="bad" icon={<ShieldOff size={14} />}>Typical agent · no protection</Pill>}
           <span className="trap-chips">{meta.traps.map((t: string) => <span className="trap-chip" key={t}><TriangleAlert size={12} />{trapName(t)}</span>)}</span>
         </div>
         <h1>{meta.title}</h1>
@@ -420,7 +422,7 @@ function ResultSheet({ d, mode }: { d: Derived; mode: string }) {
       <div className="blast">
         <div className="blast-title">Blast radius</div>
         <div className="blast-grid">
-          <div><b className={mode === 'protected' ? 'ok' : ''}>{d.blocks}</b><span>moves blocked by Capy</span></div>
+          <div><b className={mode !== 'baseline' ? 'ok' : ''}>{d.blocks}</b><span>moves blocked by Capy</span></div>
           <div><b>{d.asks}</b><span>asked you first</span></div>
           <div><b className={d.wallBlocks ? 'ok' : ''}>{d.wallBlocks}</b><span>requests stopped at the walls</span></div>
           <div><b className={d.leaks || o?.cardLeaked ? 'bad' : 'ok'}>{o?.cardLeaked ? 'card' : d.leaks}</b><span>leaked</span></div>

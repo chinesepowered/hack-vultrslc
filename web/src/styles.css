@@ -154,7 +154,8 @@ h1, h2, h3 { font-family: var(--display); letter-spacing: -.02em; margin: 0; }
 .trap-list { display: grid; gap: 8px; margin-bottom: 20px; }
 .trap-head { display: flex; gap: 8px; align-items: center; font-weight: 700; color: var(--warn); font-size: 14px; }
 .trap { display: grid; grid-template-columns: 200px 1fr; gap: 12px; font-size: 14px; padding: 8px 12px; background: var(--warn-bg); border-radius: 10px; color: #6B4A0E; }
-.mode-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.mode-toggle { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+.mode-toggle button.on.warn { border-color: #E8A21C; background: var(--warn-bg); color: var(--warn); }
 .mode-toggle button { display: flex; gap: 12px; align-items: center; text-align: left; background: var(--surface); border: 2px solid var(--line-2); border-radius: 16px; padding: 14px 16px; cursor: pointer; font: inherit; color: var(--ink-2); }
 .mode-toggle button span { display: flex; flex-direction: column; }
 .mode-toggle button b { color: var(--ink); font-size: 15.5px; }

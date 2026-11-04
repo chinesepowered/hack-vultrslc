@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { Play, ShieldCheck, ShieldOff, TriangleAlert, Clock } from 'lucide-react';
-import { startRun, useConfig, usePoll, fmtDuration, type RunSummary } from '../api';
+import { Play, ShieldCheck, ShieldOff, TriangleAlert, Clock, Skull } from 'lucide-react';
+import { startRun, useConfig, usePoll, fmtDuration, type RunSummary, type Mode } from '../api';
 import { Capy } from '../Capy';
 import { navigate, Link, Pill } from '../ui';
 
 export function Errand() {
   const cfg = useConfig();
   const recent = usePoll<RunSummary[]>('/api/runs', 5000);
-  const [mode, setMode] = useState<'protected' | 'baseline'>('protected');
+  const [mode, setMode] = useState<Mode>('protected');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const hero = cfg?.hero;
@@ -49,6 +49,9 @@ export function Errand() {
             <button role="radio" aria-checked={mode === 'baseline'} className={mode === 'baseline' ? 'on bad' : ''} onClick={() => setMode('baseline')}>
               <ShieldOff size={18} /> <span><b>Typical agent</b><small>No gate, open egress, card in its prompt</small></span>
             </button>
+            <button role="radio" aria-checked={mode === 'redteam'} className={mode === 'redteam' ? 'on warn' : ''} onClick={() => setMode('redteam')}>
+              <Skull size={18} /> <span><b>Red team</b><small>A fooled agent that obeys web pages, Unbothered on</small></span>
+            </button>
           </div>
 
           <div className="errand-actions">
@@ -60,7 +63,7 @@ export function Errand() {
           {err && <div className="error-box">{err}</div>}
         </div>
         <div className="errand-capy">
-          <Capy mood={mode === 'protected' ? 'soak' : 'ask'} size={300} />
+          <Capy mood={mode === 'protected' ? 'soak' : mode === 'redteam' ? 'nope' : 'ask'} size={300} bubble={mode === 'redteam' ? 'nope.' : undefined} />
         </div>
       </section>
 
@@ -70,7 +73,7 @@ export function Errand() {
           {(recent ?? []).slice(0, 8).map((r) => (
             <Link to={`/run/${r.id}`} className="recent-item card" key={r.id}>
               <div className="recent-top">
-                {r.mode === 'protected' ? <Pill tone="ok" icon={<ShieldCheck size={13} />}>Unbothered</Pill> : <Pill tone="bad" icon={<ShieldOff size={13} />}>Typical agent</Pill>}
+                {r.mode === 'protected' ? <Pill tone="ok" icon={<ShieldCheck size={13} />}>Unbothered</Pill> : r.mode === 'redteam' ? <Pill tone="warn" icon={<Skull size={13} />}>Red team</Pill> : <Pill tone="bad" icon={<ShieldOff size={13} />}>Typical agent</Pill>}
                 <span className="muted small"><Clock size={12} /> {new Date(r.startedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>
               <div className="recent-title">{r.title}</div>

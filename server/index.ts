@@ -33,7 +33,7 @@ app.get('/api/config', (_req, res) => {
 app.post('/api/runs', (req, res) => {
   const task = getTask(String(req.body?.taskId ?? 'hero'));
   if (!task) return res.status(404).json({ error: 'unknown task' });
-  const mode = req.body?.mode === 'baseline' ? 'baseline' : 'protected';
+  const mode = req.body?.mode === 'baseline' ? 'baseline' : req.body?.mode === 'redteam' ? 'redteam' : 'protected';
   const now = Date.now();
   while (recentStarts.length && now - recentStarts[0] > 3600e3) recentStarts.shift();
   if (!isAdmin(req)) {

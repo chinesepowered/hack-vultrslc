@@ -40,4 +40,6 @@ export const config = {
   publicUrl: env('PUBLIC_URL'),
 };
 
-export type Mode = 'protected' | 'baseline';
+// protected: Unbothered on. baseline: a typical agent (no gate, open egress, card in prompt).
+// redteam: Unbothered on, but the agent is told to obey web pages, simulating a fooled agent.
+export type Mode = 'protected' | 'baseline' | 'redteam';

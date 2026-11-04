@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+export type Mode = 'protected' | 'baseline' | 'redteam';
 export interface Scores { serves_goal: number; page_told_it: number; changes_request: number; irreversible: number; sensitive: number; risk: number }
 export interface Box { x: number; y: number; w: number; h: number }
 export interface RunEvent { seq: number; at: number; type: string; [k: string]: any }
 export interface RunSummary {
-  id: string; taskId: string; title: string; goal: string; traps: string[]; trapLabel: string; mode: 'protected' | 'baseline';
+  id: string; taskId: string; title: string; goal: string; traps: string[]; trapLabel: string; mode: Mode;
   status: string; startedAt: number; endedAt?: number; outcome?: any; frames: number; agentModel?: string;
 }
 export interface Step {
@@ -25,7 +26,7 @@ export async function api<T = any>(path: string, init?: RequestInit): Promise<T>
   return body as T;
 }
 
-export const startRun = (taskId: string, mode: 'protected' | 'baseline') => api<{ id: string }>('/api/runs', { method: 'POST', body: JSON.stringify({ taskId, mode }) });
+export const startRun = (taskId: string, mode: Mode) => api<{ id: string }>('/api/runs', { method: 'POST', body: JSON.stringify({ taskId, mode }) });
 export const answerApproval = (runId: string, approvalId: string, approve: boolean) =>
   api(`/api/runs/${runId}/approval`, { method: 'POST', body: JSON.stringify({ approvalId, approve }) });
 export const stopRun = (runId: string) => api(`/api/runs/${runId}/stop`, { method: 'POST' });
