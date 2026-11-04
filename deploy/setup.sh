@@ -12,6 +12,15 @@ BRANCH=${BRANCH:-claude/dazzling-brahmagupta-fepg3r}
 APP=/opt/unbothered
 export DEBIAN_FRONTEND=noninteractive
 
+# While provisioning, serve this log (no secrets in it) on port 80 so progress can be
+# checked without SSH. Stopped before Caddy takes over the port.
+mkdir -p /var/log/unbothered-public
+ln -sf /var/log/unbothered-setup.log /var/log/unbothered-public/setup.log
+if ! command -v caddy >/dev/null; then
+  nohup python3 -m http.server 80 --directory /var/log/unbothered-public >/dev/null 2>&1 &
+  echo $! > /run/unbothered-logserver.pid
+fi
+
 apt-get update -y
 apt-get install -y ca-certificates curl git gnupg debian-keyring debian-archive-keyring apt-transport-https
 
@@ -39,6 +48,7 @@ if ! command -v node >/dev/null || ! node -v | grep -q '^v22'; then
 fi
 
 # --- Caddy (automatic HTTPS)
+if [ -f /run/unbothered-logserver.pid ]; then kill "$(cat /run/unbothered-logserver.pid)" || true; rm -f /run/unbothered-logserver.pid; sleep 1; fi
 if ! command -v caddy >/dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list

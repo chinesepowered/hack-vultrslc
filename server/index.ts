@@ -112,6 +112,8 @@ app.get('/api/admin/diag', async (req, res) => {
     docker: await run('docker', ['ps', '--format', '{{.Names}} {{.Status}} {{.Image}}']),
     runsc: await run('runsc', ['--version']),
     git: await run('git', ['log', '-1', '--format=%h %s']),
+    setupLog: await run('tail', ['-n', '25', '/var/log/unbothered-setup.log']),
+    deployLog: await run('journalctl', ['-u', 'unbothered-deploy', '-n', '10', '--no-pager']),
     uptime: process.uptime(),
   });
 });
