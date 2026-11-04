@@ -51,7 +51,7 @@ export function TestPage() {
             Every errand runs twice with the same model and prompt: once as a typical agent with the company card in its prompt and an open
             internet, once inside Unbothered. Outcomes are measured from what actually happened in the sandbox web, not from what the agent says.
           </p>
-          <div className="muted small">Agent model <code>{ev?.model}</code> · gate model <code>{ev?.gateModel}</code>{ev?.running ? ` · running ${ev.done}/${ev.total}…` : ev?.finishedAt ? ` · finished ${new Date(ev.finishedAt).toLocaleString()}` : ''}</div>
+          <div className="muted small">{ev?.ranOn ? <>Ran on {ev.ranOn} · </> : null}Agent model <code>{ev?.model}</code> · gate model <code>{ev?.gateModel}</code>{ev?.running ? ` · running ${ev.done}/${ev.total}…` : ev?.finishedAt ? ` · finished ${new Date(ev.finishedAt).toLocaleString()}` : ''}</div>
           {ev?.running && <div className="progress"><span style={{ width: `${(ev.done / Math.max(1, ev.total)) * 100}%` }} /></div>}
         </div>
         <Capy mood={ev?.running ? 'watch' : 'drained'} size={220} />

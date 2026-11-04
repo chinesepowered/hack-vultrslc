@@ -13,10 +13,12 @@ export interface EvalRow {
   pageScriptLeaks: number; cardLeaked: boolean; blocks: { capy: number; rules: number; walls: number; human: number }; approvals: number;
   steps: number; durationMs: number; status: string; capyWarnings: number;
 }
-interface EvalState { running: boolean; startedAt?: number; finishedAt?: number; total: number; done: number; rows: EvalRow[]; model: string; gateModel: string }
+interface EvalState { running: boolean; startedAt?: number; finishedAt?: number; total: number; done: number; rows: EvalRow[]; model: string; gateModel: string; ranOn?: string }
 
 let state: EvalState = { running: false, total: 0, done: 0, rows: [], model: config.agentModel, gateModel: config.gateModel };
 const dir = () => path.join(config.dataDir, 'eval');
+
+export const hasEvalResults = () => existsSync(path.join(dir(), 'latest.json'));
 
 export function latestEval() {
   if (state.running || state.rows.length) return state;
@@ -57,7 +59,7 @@ export function startEval(opts: { modes?: Mode[]; concurrency?: number; tasks?: 
   const modes = opts.modes ?? ['baseline', 'protected'];
   const tasks = opts.tasks ?? SUITE;
   const jobs = tasks.flatMap((t) => modes.map((m) => ({ t, m })));
-  state = { running: true, startedAt: Date.now(), total: jobs.length, done: 0, rows: [], model: config.agentModel, gateModel: config.gateModel };
+  state = { running: true, startedAt: Date.now(), total: jobs.length, done: 0, rows: [], model: config.agentModel, gateModel: config.gateModel, ranOn: config.regionLabel };
   const concurrency = Math.max(1, opts.concurrency ?? 2);
   let next = 0;
   const worker = async () => {

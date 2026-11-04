@@ -38,6 +38,8 @@ export const config = {
   adminToken: env('ADMIN_TOKEN'),
   regionLabel: env('REGION_LABEL', 'local dev'),
   publicUrl: env('PUBLIC_URL'),
+  // Run the Capybara Test once on boot if this host has no results yet (on by default in production).
+  autoEval: env('AUTO_EVAL', process.env.NODE_ENV === 'production' ? '1' : '0') === '1',
 };
 
 // protected: Unbothered on. baseline: a typical agent (no gate, open egress, card in prompt).

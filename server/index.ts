@@ -10,7 +10,7 @@ import { startProxy } from './proxy.ts';
 import { runAgent, setProxyHost } from './agent.ts';
 import { Run, runs, loadRun, recentRuns } from './runs.ts';
 import { HERO, SUITE, getTask, TRAP_INFO, ALLOW } from './tasks.ts';
-import { startEval, latestEval } from './eval.ts';
+import { startEval, latestEval, hasEvalResults } from './eval.ts';
 
 const app = express();
 app.disable('x-powered-by');
@@ -133,4 +133,8 @@ await startProxy(sb.proxyBind, config.proxyPort);
 app.listen(config.port, config.host, () => {
   console.log(`unbothered on http://${config.host}:${config.port} · sandbox=${sb.driver} · proxy=${sb.proxyBind}:${config.proxyPort}`);
   console.log(`models: agent=${config.agentModel} gate=${config.gateModel} verify=${config.verifyModel}`);
+  if (config.autoEval && !hasEvalResults()) {
+    console.log('no Capybara Test results on this host yet: starting one');
+    setTimeout(() => startEval({ concurrency: 3 }), 15_000);
+  }
 });
