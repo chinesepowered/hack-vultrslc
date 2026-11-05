@@ -10,7 +10,7 @@ WORKDIR /tub
 RUN --mount=type=secret,id=ca,required=false \
     if [ -f /run/secrets/ca ]; then export NODE_EXTRA_CA_CERTS=/run/secrets/ca; fi; \
     npm init -y >/dev/null && npm install --omit=dev --no-audit --no-fund playwright@1.63.0 && npm cache clean --force
-COPY server.mjs /tub/server.mjs
+COPY --chmod=0644 server.mjs /tub/server.mjs
 
 # Unprivileged user that ships with the Playwright image.
 USER pwuser

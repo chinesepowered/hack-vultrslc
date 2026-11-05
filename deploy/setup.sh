@@ -5,6 +5,7 @@
 # Installs Docker + gVisor (the tub runtime), Node 22, Caddy (HTTPS), builds the app and
 # the tub image, and installs a systemd service plus a git-pull auto-deploy timer.
 set -euxo pipefail
+umask 022
 exec >> /var/log/unbothered-setup.log 2>&1
 
 REPO=${REPO:-https://github.com/chinesepowered/hack-vultrslc}
