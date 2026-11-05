@@ -12,6 +12,13 @@ BRANCH=${BRANCH:-claude/dazzling-brahmagupta-fepg3r}
 APP=/opt/unbothered
 export DEBIAN_FRONTEND=noninteractive
 
+# Vultr images ship with UFW active and only SSH allowed: open the web ports first.
+if command -v ufw >/dev/null; then ufw allow 80/tcp || true; ufw allow 443/tcp || true; fi
+
+# First boot often has unattended-upgrades holding the apt lock; wait for it instead of failing.
+wait_apt() { for _ in $(seq 1 300); do fuser /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock >/dev/null 2>&1 || return 0; sleep 3; done; }
+APT="apt-get -o DPkg::Lock::Timeout=900"
+
 # While provisioning, serve this log (no secrets in it) on port 80 so progress can be
 # checked without SSH. Stopped before Caddy takes over the port.
 mkdir -p /var/log/unbothered-public
@@ -21,11 +28,12 @@ if ! command -v caddy >/dev/null; then
   echo $! > /run/unbothered-logserver.pid
 fi
 
-apt-get update -y
-apt-get install -y ca-certificates curl git gnupg debian-keyring debian-archive-keyring apt-transport-https
+wait_apt
+$APT update -y
+$APT install -y ca-certificates curl git gnupg debian-keyring debian-archive-keyring apt-transport-https psmisc
 
 # --- Docker
-if ! command -v docker >/dev/null; then curl -fsSL https://get.docker.com | sh; fi
+if ! command -v docker >/dev/null; then wait_apt; curl -fsSL https://get.docker.com | sh; fi
 
 # --- gVisor: the user-space kernel every tub runs under
 cd /tmp
@@ -43,8 +51,9 @@ systemctl restart docker
 
 # --- Node 22
 if ! command -v node >/dev/null || ! node -v | grep -q '^v22'; then
+  wait_apt
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  apt-get install -y nodejs
+  $APT install -y nodejs
 fi
 
 # --- Caddy (automatic HTTPS)
@@ -52,7 +61,8 @@ if [ -f /run/unbothered-logserver.pid ]; then kill "$(cat /run/unbothered-logser
 if ! command -v caddy >/dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
-  apt-get update -y && apt-get install -y caddy
+  wait_apt
+  $APT update -y && $APT install -y caddy
 fi
 
 # --- App
@@ -77,6 +87,6 @@ cp deploy/unbothered-deploy.service deploy/unbothered-deploy.timer /etc/systemd/
 systemctl daemon-reload
 systemctl enable --now unbothered.service unbothered-deploy.timer
 
-sed "s/__HOST__/$HOST/" deploy/Caddyfile > /etc/caddy/Caddyfile
+sed "s/__HOST__/$HOST/; s/__IP__/$IP/" deploy/Caddyfile > /etc/caddy/Caddyfile
 systemctl reload caddy || systemctl restart caddy
 echo "UNBOTHERED READY https://$HOST"

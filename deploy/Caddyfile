@@ -4,3 +4,11 @@ __HOST__ {
 		flush_interval -1
 	}
 }
+
+# Plain HTTP on the bare IP as a fallback (and for health checks from restricted networks).
+http://__IP__ {
+	encode gzip zstd
+	reverse_proxy 127.0.0.1:8080 {
+		flush_interval -1
+	}
+}

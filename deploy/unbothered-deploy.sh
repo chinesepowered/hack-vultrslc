@@ -14,7 +14,8 @@ if echo "$CHANGED" | grep -qE '^(web/|package)'; then npm run build; fi
 if echo "$CHANGED" | grep -q '^tub/'; then docker build -t unbothered/tub:1.63.0 tub/; fi
 if echo "$CHANGED" | grep -q '^deploy/Caddyfile'; then
   HOST=$(grep '^PUBLIC_URL=' .env | sed 's#PUBLIC_URL=https://##')
-  sed "s/__HOST__/$HOST/" deploy/Caddyfile > /etc/caddy/Caddyfile && systemctl reload caddy
+  IP=$(echo "$HOST" | cut -d. -f1 | tr - .)
+  sed "s/__HOST__/$HOST/; s/__IP__/$IP/" deploy/Caddyfile > /etc/caddy/Caddyfile && systemctl reload caddy
 fi
 # Don't interrupt a Capybara Test that is running.
 if curl -fs http://127.0.0.1:8080/api/eval | grep -q '"running":true'; then
