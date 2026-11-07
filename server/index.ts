@@ -20,7 +20,12 @@ const recentStarts: number[] = [];
 const activeRuns = () => [...runs.values()].filter((r) => !r.endedAt && r.source === 'ui').length;
 const isAdmin = (req: express.Request) => !!config.adminToken && req.get('x-admin-token') === config.adminToken;
 
-app.get('/api/health', (_req, res) => res.json({ ok: true, driver: sandboxDriver(), runs: runs.size }));
+// Sandbox start-up state. The web app comes up even if the sandbox can't, so problems are
+// visible (coarsely here, in detail on the admin-only diag endpoint) instead of a dead site.
+let sandboxState: 'starting' | 'ready' | 'failed' = 'starting';
+let sandboxError = '';
+
+app.get('/api/health', (_req, res) => res.json({ ok: true, driver: sandboxDriver(), sandbox: sandboxState, runs: runs.size }));
 
 app.get('/api/config', (_req, res) => {
   res.json({
@@ -108,12 +113,13 @@ app.get('/api/admin/diag', async (req, res) => {
   const sh = promisify(execFile);
   const run = (cmd: string, args: string[]) => sh(cmd, args, { timeout: 20_000 }).then((r) => r.stdout.trim()).catch((e) => `ERR ${e.message}`);
   res.json({
-    driver: sandboxDriver(), runs: [...runs.values()].map((r) => r.summary()),
+    driver: sandboxDriver(), sandbox: sandboxState, sandboxError, runs: [...runs.values()].map((r) => r.summary()),
     docker: await run('docker', ['ps', '--format', '{{.Names}} {{.Status}} {{.Image}}']),
     runsc: await run('runsc', ['--version']),
     git: await run('git', ['log', '-1', '--format=%h %s']),
     setupLog: await run('tail', ['-n', '25', '/var/log/unbothered-setup.log']),
     deployLog: await run('journalctl', ['-u', 'unbothered-deploy', '-n', '10', '--no-pager']),
+    serviceLog: await run('journalctl', ['-u', 'unbothered', '-n', '40', '--no-pager']),
     uptime: process.uptime(),
   });
 });
@@ -127,14 +133,23 @@ app.use((req, res, next) => {
   return existsSync(index) ? res.sendFile(index) : res.status(503).send('UI not built yet: run npm run build');
 });
 
-const sb = await initSandbox();
-setProxyHost(sb.proxyHostForTubs);
-await startProxy(sb.proxyBind, config.proxyPort);
 app.listen(config.port, config.host, () => {
-  console.log(`unbothered on http://${config.host}:${config.port} · sandbox=${sb.driver} · proxy=${sb.proxyBind}:${config.proxyPort}`);
+  console.log(`unbothered on http://${config.host}:${config.port}`);
   console.log(`models: agent=${config.agentModel} gate=${config.gateModel} verify=${config.verifyModel}`);
+});
+
+try {
+  const sb = await initSandbox();
+  setProxyHost(sb.proxyHostForTubs);
+  await startProxy(sb.proxyBind, config.proxyPort);
+  sandboxState = 'ready';
+  console.log(`sandbox=${sb.driver} · proxy=${sb.proxyBind}:${config.proxyPort}`);
   if (config.autoEval && !hasEvalResults()) {
     console.log('no Capybara Test results on this host yet: starting one');
     setTimeout(() => startEval({ concurrency: 3 }), 15_000);
   }
-});
+} catch (e: any) {
+  sandboxState = 'failed';
+  sandboxError = String(e?.message ?? e);
+  console.error('sandbox start-up failed:', sandboxError);
+}
