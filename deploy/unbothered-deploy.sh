@@ -19,24 +19,28 @@ if [ "$OLD" = "$NEW" ]; then
   git rev-parse -q --verify HEAD >/dev/null || git reset -q --hard "$NEW"
   exit 0
 fi
-# Don't interrupt a Capybara Test that is running: the next tick tries again.
-if curl -fs http://127.0.0.1:8080/api/eval | grep -q '"running":true'; then
-  echo "eval running, deploy deferred"; exit 0
-fi
 if git cat-file -e "$OLD^{commit}" 2>/dev/null; then
   CHANGED=$(git diff --name-only "$OLD" "$NEW")
 else
   CHANGED=$(git ls-tree -r --name-only "$NEW")
 fi
+# Only code changes restart the app (which ends live runs). Docs, the video pipeline and the
+# README just update the checkout.
+RESTART=$(echo "$CHANGED" | grep -E '^(server/|web/|tub/|package|tsconfig)' || true)
+# Don't interrupt a Capybara Test that is running: the next tick tries again.
+if [ -n "$RESTART" ] && curl -fs http://127.0.0.1:8080/api/eval | grep -q '"running":true'; then
+  echo "eval running, deploy deferred"; exit 0
+fi
 git reset -q --hard "$NEW"
-if echo "$CHANGED" | grep -q '^package'; then npm ci --no-audit --no-fund; fi
-if echo "$CHANGED" | grep -qE '^(web/|package)'; then npm run build; fi
-if echo "$CHANGED" | grep -q '^tub/'; then docker build -t unbothered/tub:1.63.0 tub/; fi
+if echo "$CHANGED" | grep -q '^deploy/unbothered-deploy.sh'; then install -m 755 deploy/unbothered-deploy.sh /usr/local/bin/unbothered-deploy; fi
 if echo "$CHANGED" | grep -q '^deploy/Caddyfile'; then
   HOST=$(grep '^PUBLIC_URL=' .env | sed 's#PUBLIC_URL=https://##')
   IP=$(echo "$HOST" | cut -d. -f1 | tr - .)
   sed "s/__HOST__/$HOST/; s/__IP__/$IP/" deploy/Caddyfile > /etc/caddy/Caddyfile && systemctl reload caddy
 fi
-if echo "$CHANGED" | grep -q '^deploy/unbothered-deploy.sh'; then install -m 755 deploy/unbothered-deploy.sh /usr/local/bin/unbothered-deploy; fi
+[ -n "$RESTART" ] || { echo "updated to $NEW, no restart needed"; exit 0; }
+if echo "$CHANGED" | grep -q '^package'; then npm ci --no-audit --no-fund; fi
+if echo "$CHANGED" | grep -qE '^(web/|package)'; then npm run build; fi
+if echo "$CHANGED" | grep -q '^tub/'; then docker build -t unbothered/tub:1.63.0 tub/; fi
 systemctl restart unbothered
 echo "deployed $NEW"
