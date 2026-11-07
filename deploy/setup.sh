@@ -9,7 +9,7 @@ umask 022
 exec >> /var/log/unbothered-setup.log 2>&1
 
 REPO=${REPO:-https://github.com/chinesepowered/hack-vultrslc}
-BRANCH=${BRANCH:-claude/dazzling-brahmagupta-fepg3r}
+BRANCH=${BRANCH:-main}
 APP=/opt/unbothered
 export DEBIAN_FRONTEND=noninteractive
 
