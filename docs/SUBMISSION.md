@@ -22,5 +22,6 @@ We measured it with the Capybara Test: 20 errands with 5 kinds of traps, each ru
 - Demo video: https://www.youtube.com/watch?v=BwLbXmdFqJg
 - App: https://45-76-243-226.sslip.io
 - Repo: https://github.com/chinesepowered/hack-vultrslc
-- Slides: docs/out/unbothered-slides.pdf
+- Pitch deck (5 slides): docs/out/unbothered-pitch.pdf, or docs/pitch.html in a browser
+- Full slides (9): docs/out/unbothered-slides.pdf
 - Cover image: docs/out/cover.png

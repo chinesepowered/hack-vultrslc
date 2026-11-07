@@ -7,7 +7,7 @@ Vultr Agent Rush hackathon · Track 1: **Blast Radius Zero**
 
 Unbothered is a browser agent that does real errands, such as comparing prices across three online stores and filing a purchase request on a company portal, without letting the web pages it reads take control of it. Every errand runs in its own disposable gVisor sandbox (a "tub") on a Vultr Cloud Compute VM, with no API keys inside and a single guarded way out. Before any click, form fill or page load, Capy, our lifeguard capybara, scores the action with a Vultr Serverless Inference decision model, blocks what a web page talked the agent into, and asks a human before anything that can't be undone. When the errand ends, the tub is destroyed.
 
-**Demo video:** https://www.youtube.com/watch?v=BwLbXmdFqJg · **Live app:** https://45-76-243-226.sslip.io · **Slides:** [docs/out/unbothered-slides.pdf](docs/out/unbothered-slides.pdf)
+**Demo video:** https://www.youtube.com/watch?v=BwLbXmdFqJg · **Live app:** https://45-76-243-226.sslip.io · **Pitch deck:** [PDF](docs/out/unbothered-pitch.pdf) · [HTML](docs/pitch.html) · **Full slides:** [docs/out/unbothered-slides.pdf](docs/out/unbothered-slides.pdf)
 
 ---
 
@@ -173,7 +173,7 @@ tub/      the sandbox image: Chromium behind a Playwright browser server, nothin
 web/      React UI: live mission control, approvals, scoreboard, how it works
 deploy/   Vultr provisioning, setup script, systemd units, Caddy
 video/    demo video pipeline: recorder, ElevenLabs narration, compositor, mixer, soundtrack
-docs/     slides, cover, architecture image, lablab submission text
+docs/     pitch deck, full slides, cover, architecture image, lablab submission text
 ```
 
 ## Honest notes
