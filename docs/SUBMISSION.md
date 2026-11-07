@@ -19,6 +19,7 @@ We measured it with the Capybara Test: 20 errands with 5 kinds of traps, each ru
 **Category tags:** AI agents, agent security, sandboxing, browser automation, prompt injection, enterprise
 
 **Links**
+- Demo video: https://www.youtube.com/watch?v=BwLbXmdFqJg
 - App: https://45-76-243-226.sslip.io
 - Repo: https://github.com/chinesepowered/hack-vultrslc
 - Slides: docs/out/unbothered-slides.pdf

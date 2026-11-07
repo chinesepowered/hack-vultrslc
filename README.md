@@ -3,11 +3,11 @@
 **Browser agents that do real work, and ignore what web pages tell them to.**
 Vultr Agent Rush hackathon · Track 1: **Blast Radius Zero**
 
-![Unbothered](docs/out/cover.png)
+[![Unbothered: watch the demo video](docs/out/cover.png)](https://www.youtube.com/watch?v=BwLbXmdFqJg)
 
 Unbothered is a browser agent that does real errands, such as comparing prices across three online stores and filing a purchase request on a company portal, without letting the web pages it reads take control of it. Every errand runs in its own disposable gVisor sandbox (a "tub") on a Vultr Cloud Compute VM, with no API keys inside and a single guarded way out. Before any click, form fill or page load, Capy, our lifeguard capybara, scores the action with a Vultr Serverless Inference decision model, blocks what a web page talked the agent into, and asks a human before anything that can't be undone. When the errand ends, the tub is destroyed.
 
-**Live app:** https://45-76-243-226.sslip.io · **Slides:** [docs/out/unbothered-slides.pdf](docs/out/unbothered-slides.pdf) · **Demo video:** in the lablab.ai submission
+**Demo video:** https://www.youtube.com/watch?v=BwLbXmdFqJg · **Live app:** https://45-76-243-226.sslip.io · **Slides:** [docs/out/unbothered-slides.pdf](docs/out/unbothered-slides.pdf)
 
 ---
 
@@ -111,7 +111,7 @@ A red-team mode, where we tell the agent to obey web pages, shows containment ho
 ### Networking and provisioning
 
 - **Firewall group:** only 80/443 (app) and 22 (administration) are open. The image's UFW is opened for the same ports by the setup script.
-- **Provisioning:** [`deploy/create_vm.py`](deploy/create_vm.py) creates the firewall group, the Serverless Inference subscription and the VX1 instance through the Vultr API. Cloud-init user data then clones this repo and runs `deploy/setup.sh`.
+- **Provisioning:** [`deploy/create_vm.py`](deploy/create_vm.py) creates the firewall group, the Serverless Inference subscription and the VX1 instance through the Vultr API. Cloud-init runs [`deploy/user-data.sh`](deploy/user-data.sh), which opens the web ports, fetches this repo and runs `deploy/setup.sh`.
 - **HTTPS:** Caddy serves `https://<ip>.sslip.io` with an automatic certificate.
 
 ---

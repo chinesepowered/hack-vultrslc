@@ -1,6 +1,6 @@
 #!/bin/bash
 # Provision an Unbothered host on a fresh Vultr Ubuntu 24.04 instance.
-# Run as root (cloud-init user_data does this). Secrets come from /root/unbothered.env:
+# Run as root (deploy/user-data.sh does this). Secrets come from /root/unbothered.env:
 #   VULTR_INFERENCE_API_KEY=...   ADMIN_TOKEN=...
 # Installs Docker + gVisor (the tub runtime), Node 22, Caddy (HTTPS), builds the app and
 # the tub image, and installs a systemd service plus a git-pull auto-deploy timer.
@@ -16,30 +16,33 @@ export DEBIAN_FRONTEND=noninteractive
 # Vultr images ship with UFW active and only SSH allowed: open the web ports first.
 if command -v ufw >/dev/null; then ufw allow 80/tcp || true; ufw allow 443/tcp || true; fi
 
-# First boot often has unattended-upgrades holding the apt lock; wait for it instead of failing.
-wait_apt() { for _ in $(seq 1 300); do fuser /var/lib/dpkg/lock-frontend /var/lib/dpkg/lock /var/lib/apt/lists/lock >/dev/null 2>&1 || return 0; sleep 3; done; }
-APT="apt-get -o DPkg::Lock::Timeout=900"
-
-# While provisioning, serve this log (no secrets in it) on port 80 so progress can be
-# checked without SSH. Stopped before Caddy takes over the port.
-mkdir -p /var/log/unbothered-public
-ln -sf /var/log/unbothered-setup.log /var/log/unbothered-public/setup.log
+# While provisioning, port 80 shows one line: the current step (no logs). Caddy takes the
+# port over at the end.
+STATUS=/var/www/unbothered-status
+mkdir -p "$STATUS"
+step() { echo "$(date -u +%H:%M:%S) $*" > "$STATUS/status.txt"; }
+step "provisioning started"
 if ! command -v caddy >/dev/null; then
-  nohup python3 -m http.server 80 --directory /var/log/unbothered-public >/dev/null 2>&1 &
-  echo $! > /run/unbothered-logserver.pid
+  nohup python3 -m http.server 80 --directory "$STATUS" >/dev/null 2>&1 &
+  echo $! > /run/unbothered-status.pid
 fi
 
-wait_apt
-$APT update -y
-$APT install -y ca-certificates curl git gnupg debian-keyring debian-archive-keyring apt-transport-https psmisc
+# First boot usually has unattended-upgrades holding the apt lock: retry instead of failing.
+APT="apt-get -o DPkg::Lock::Timeout=600"
+retry() { for _ in $(seq 1 30); do "$@" && return 0; sleep 10; done; return 1; }
 
-# --- Docker
-if ! command -v docker >/dev/null; then wait_apt; curl -fsSL https://get.docker.com | sh; fi
+step "installing base packages"
+retry $APT update -y
+retry $APT install -y ca-certificates curl git gnupg debian-keyring debian-archive-keyring apt-transport-https
 
-# --- gVisor: the user-space kernel every tub runs under
+step "installing Docker"
+if ! command -v docker >/dev/null; then retry sh -c 'curl -fsSL https://get.docker.com | sh'; fi
+
+step "installing gVisor"
 cd /tmp
 URL=https://storage.googleapis.com/gvisor/releases/release/latest/x86_64
-curl -fsSLO "$URL/gvisor.tar.bz2" && curl -fsSLO "$URL/gvisor.tar.bz2.sha512"
+retry curl -fsSLO "$URL/gvisor.tar.bz2"
+retry curl -fsSLO "$URL/gvisor.tar.bz2.sha512"
 sha512sum -c gvisor.tar.bz2.sha512
 tar -xjf gvisor.tar.bz2
 install -m 755 runsc containerd-shim-runsc-v1 /usr/local/bin/
@@ -50,24 +53,34 @@ cat > /etc/docker/daemon.json <<'JSON'
 JSON
 systemctl restart docker
 
-# --- Node 22
+step "installing Node 22"
 if ! command -v node >/dev/null || ! node -v | grep -q '^v22'; then
-  wait_apt
-  curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-  $APT install -y nodejs
+  retry sh -c 'curl -fsSL https://deb.nodesource.com/setup_22.x | bash -'
+  retry $APT install -y nodejs
 fi
 
-# --- Caddy (automatic HTTPS)
-if [ -f /run/unbothered-logserver.pid ]; then kill "$(cat /run/unbothered-logserver.pid)" || true; rm -f /run/unbothered-logserver.pid; sleep 1; fi
+step "installing Caddy"
+if [ -f /run/unbothered-status.pid ]; then kill "$(cat /run/unbothered-status.pid)" || true; rm -f /run/unbothered-status.pid; sleep 1; fi
 if ! command -v caddy >/dev/null; then
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
   curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' > /etc/apt/sources.list.d/caddy-stable.list
-  wait_apt
-  $APT update -y && $APT install -y caddy
+  retry $APT update -y
+  retry $APT install -y caddy
 fi
 
-# --- App
-if [ ! -d "$APP/.git" ]; then git clone --branch "$BRANCH" "$REPO" "$APP"; fi
+# --- App. User data may have fetched a tarball; make it a git checkout so the auto-deploy
+# timer can pull updates.
+if [ ! -d "$APP/.git" ]; then
+  if [ -f "$APP/package.json" ]; then
+    git -C "$APP" init -q
+    git -C "$APP" remote add origin "$REPO"
+    retry git -C "$APP" fetch -q origin "$BRANCH"
+    git -C "$APP" reset -q --hard FETCH_HEAD
+    git -C "$APP" checkout -q -B "$BRANCH"
+  else
+    retry git clone --branch "$BRANCH" "$REPO" "$APP"
+  fi
+fi
 cd "$APP"
 IP=$(curl -fs http://169.254.169.254/v1/interfaces/0/ipv4/address || hostname -I | awk '{print $1}')
 HOST="$(echo "$IP" | tr . -).sslip.io"
@@ -78,10 +91,14 @@ REGION_LABEL=${REGION_LABEL:-Vultr Cloud Compute}
 NODE_ENV=production
 ENV
 chmod 600 .env
-npm ci --no-audit --no-fund
-npm run build
-docker build -t unbothered/tub:1.63.0 tub/
 
+step "building the app"
+retry npm ci --no-audit --no-fund
+npm run build
+step "building the tub image"
+retry docker build -t unbothered/tub:1.63.0 tub/
+
+step "starting services"
 cp deploy/unbothered.service /etc/systemd/system/unbothered.service
 cp deploy/unbothered-deploy.sh /usr/local/bin/unbothered-deploy && chmod +x /usr/local/bin/unbothered-deploy
 cp deploy/unbothered-deploy.service deploy/unbothered-deploy.timer /etc/systemd/system/
