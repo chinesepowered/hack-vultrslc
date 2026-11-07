@@ -9,3 +9,5 @@ video/work/
 .DS_Store
 docs/out/contact.jpg
 docs/out/slide-*.png
+__pycache__/
+*.pyc
