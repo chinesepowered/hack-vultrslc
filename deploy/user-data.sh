@@ -2,6 +2,7 @@
 # Unbothered bootstrap, run once by cloud-init on a fresh Vultr Ubuntu 24.04 instance.
 # deploy/create_vm.py fills in the __PLACEHOLDERS__; secrets only ever live in /root/unbothered.env.
 exec > /var/log/unbothered-userdata.log 2>&1
+chmod 600 /var/log/unbothered-userdata.log
 set -x
 
 # Web ports first: Vultr images ship with UFW active and only SSH allowed.
@@ -13,7 +14,9 @@ ADMIN_TOKEN=__ADMIN_TOKEN__
 EOF
 )
 
+{ set +x; } 2>/dev/null   # never trace secrets
 __OWNER_LOGIN__
+set -x
 
 export REGION_LABEL="__REGION_LABEL__" BRANCH="__BRANCH__"
 
