@@ -16,6 +16,10 @@ export GIT_TERMINAL_PROMPT=0
 
 # Vultr images ship with UFW active and only SSH allowed: open the web ports first.
 if command -v ufw >/dev/null; then ufw allow 80/tcp || true; ufw allow 443/tcp || true; fi
+# The tubs reach the egress proxy on the host over the Docker bridge, which UFW would drop.
+# Allow that one port from Docker's private range (the app also opens it for the exact tub
+# subnet when it starts).
+if command -v ufw >/dev/null; then ufw allow from 172.16.0.0/12 to any port 3128 proto tcp || true; fi
 
 # While provisioning, port 80 shows one line: the current step (no logs). Caddy takes the
 # port over at the end. The bootstrap may already have started the status server.

@@ -18,12 +18,18 @@ interface EvalState { running: boolean; startedAt?: number; finishedAt?: number;
 let state: EvalState = { running: false, total: 0, done: 0, rows: [], model: config.agentModel, gateModel: config.gateModel };
 const dir = () => path.join(config.dataDir, 'eval');
 
-export const hasEvalResults = () => existsSync(path.join(dir(), 'latest.json'));
+function saved(): EvalState | null {
+  const f = path.join(dir(), 'latest.json');
+  try { return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null; } catch { return null; }
+}
+// Progress is saved after every row, so a restart can leave a run that never finished: that
+// doesn't count as results (the next start runs the test again) and never shows as running.
+export const hasEvalResults = () => saved()?.running === false;
 
 export function latestEval() {
   if (state.running || state.rows.length) return state;
-  const f = path.join(dir(), 'latest.json');
-  return existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : state;
+  const s = saved();
+  return s ? { ...s, running: false } : state;
 }
 
 // The scripted reviewer used in protected runs: approve only the real purchase request,

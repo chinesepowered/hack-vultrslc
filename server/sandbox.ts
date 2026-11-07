@@ -36,6 +36,18 @@ export interface Tub { browser: Browser; info: TubInfo; destroy(): Promise<void>
 let resolvedDriver: 'docker' | 'local' | null = null;
 let gateway = '';
 
+// Hosts with UFW active (Vultr's Ubuntu images ship that way) drop traffic from the tub
+// network to the host, which is where the egress proxy listens. Open exactly that port, for
+// exactly the tub subnet. Without ufw, or without root, there is nothing to do.
+async function openProxyPortForTubs(gw: string) {
+  try {
+    if (!/Status: active/.test((await sh('ufw', ['status'], { timeout: 15_000 })).stdout)) return;
+    const subnet = await docker('network', 'inspect', config.tubNetwork, '--format', '{{range .IPAM.Config}}{{.Subnet}}{{end}}');
+    await sh('ufw', ['allow', 'from', subnet, 'to', gw, 'port', String(config.proxyPort), 'proto', 'tcp', 'comment', 'unbothered tubs to egress proxy'], { timeout: 15_000 });
+    console.log(`firewall: tubs (${subnet}) may reach the egress proxy at ${gw}:${config.proxyPort}`);
+  } catch { /* no ufw here, or not root */ }
+}
+
 export async function initSandbox(): Promise<{ driver: 'docker' | 'local'; proxyBind: string; proxyHostForTubs: string }> {
   if (config.sandboxDriver !== 'local') {
     try {
@@ -47,6 +59,7 @@ export async function initSandbox(): Promise<{ driver: 'docker' | 'local'; proxy
         await docker('network', 'create', '--internal', '--label', 'unbothered=tubs', config.tubNetwork);
       }
       gateway = await docker('network', 'inspect', config.tubNetwork, '--format', '{{range .IPAM.Config}}{{.Gateway}}{{end}}');
+      await openProxyPortForTubs(gateway);
       const stale = await docker('ps', '-aq', '--filter', 'label=unbothered=tub');
       if (stale) await docker('rm', '-f', ...stale.split(/\s+/));
       resolvedDriver = 'docker';

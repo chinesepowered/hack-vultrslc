@@ -116,6 +116,7 @@ app.get('/api/admin/diag', async (req, res) => {
     driver: sandboxDriver(), sandbox: sandboxState, sandboxError, runs: [...runs.values()].map((r) => r.summary()),
     docker: await run('docker', ['ps', '--format', '{{.Names}} {{.Status}} {{.Image}}']),
     runsc: await run('runsc', ['--version']),
+    firewall: await run('ufw', ['status']),
     git: await run('git', ['log', '-1', '--format=%h %s']),
     setupLog: await run('tail', ['-n', '25', '/var/log/unbothered-setup.log']),
     deployLog: await run('journalctl', ['-u', 'unbothered-deploy', '-n', '10', '--no-pager']),
