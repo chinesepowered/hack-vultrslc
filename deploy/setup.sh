@@ -17,12 +17,12 @@ export DEBIAN_FRONTEND=noninteractive
 if command -v ufw >/dev/null; then ufw allow 80/tcp || true; ufw allow 443/tcp || true; fi
 
 # While provisioning, port 80 shows one line: the current step (no logs). Caddy takes the
-# port over at the end.
+# port over at the end. The bootstrap may already have started the status server.
 STATUS=/var/www/unbothered-status
 mkdir -p "$STATUS"
 step() { echo "$(date -u +%H:%M:%S) $*" > "$STATUS/status.txt"; }
 step "provisioning started"
-if ! command -v caddy >/dev/null; then
+if ! command -v caddy >/dev/null && [ ! -f /run/unbothered-status.pid ]; then
   nohup python3 -m http.server 80 --directory "$STATUS" >/dev/null 2>&1 &
   echo $! > /run/unbothered-status.pid
 fi
