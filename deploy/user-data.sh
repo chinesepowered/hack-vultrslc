@@ -21,23 +21,36 @@ ADMIN_TOKEN=__ADMIN_TOKEN__
 EOF
 )
 
-# Fetch the code with curl: apt (and so git) is often locked by unattended upgrades on first boot.
-echo "bootstrap: fetching code" > "$STATUS/status.txt"
-mkdir -p /opt/unbothered
-for _ in $(seq 1 30); do
-  curl -fsSL "https://codeload.github.com/chinesepowered/hack-vultrslc/tar.gz/refs/heads/__BRANCH__" \
-    | tar -xz --strip-components=1 -C /opt/unbothered && break
-  sleep 10
-done
-
-# Run setup as its own systemd unit so nothing in cloud-init can block or kill it.
-echo "bootstrap: starting setup" > "$STATUS/status.txt"
-systemd-run --unit=unbothered-setup --no-block \
-  --setenv=REGION_LABEL="__REGION_LABEL__" --setenv=BRANCH="__BRANCH__" \
-  bash /opt/unbothered/deploy/setup.sh
-
 # Optional owner login (filled in by create_vm.py when requested). Never traced; restarts
 # don't wait, because waiting on a service restart from inside cloud-init can hang.
 { set +x; } 2>/dev/null
 __OWNER_LOGIN__
 set -x
+
+# The code: create_vm.py embeds it here (so a private repo works). Without a bundle it is
+# fetched from GitHub with curl, because apt (and so git) is often locked on first boot.
+APP=/opt/unbothered
+mkdir -p "$APP"
+echo "bootstrap: unpacking code" > "$STATUS/status.txt"
+base64 -d <<'EOF' | tar -xz -C "$APP"
+__CODE_BUNDLE__
+EOF
+if [ ! -f "$APP/package.json" ]; then
+  echo "bootstrap: fetching code" > "$STATUS/status.txt"
+  for _ in $(seq 1 30); do
+    curl -fsSL "https://codeload.github.com/chinesepowered/hack-vultrslc/tar.gz/refs/heads/__BRANCH__" \
+      | tar -xz --strip-components=1 -C "$APP" && break
+    sleep 10
+  done
+fi
+if [ ! -f "$APP/package.json" ]; then
+  echo "bootstrap: could not get the code (private repo and no embedded bundle?)" > "$STATUS/status.txt"
+  exit 1
+fi
+echo "__CODE_REV__" > "$APP/.deploy-rev"
+
+# Run setup as its own systemd unit so nothing in cloud-init can block or kill it.
+echo "bootstrap: starting setup" > "$STATUS/status.txt"
+systemd-run --unit=unbothered-setup --no-block \
+  --setenv=REGION_LABEL="__REGION_LABEL__" --setenv=BRANCH="__BRANCH__" \
+  bash "$APP/deploy/setup.sh"

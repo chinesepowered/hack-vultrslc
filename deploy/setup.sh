@@ -12,6 +12,7 @@ REPO=${REPO:-https://github.com/chinesepowered/hack-vultrslc}
 BRANCH=${BRANCH:-main}
 APP=/opt/unbothered
 export DEBIAN_FRONTEND=noninteractive
+export GIT_TERMINAL_PROMPT=0
 
 # Vultr images ship with UFW active and only SSH allowed: open the web ports first.
 if command -v ufw >/dev/null; then ufw allow 80/tcp || true; ufw allow 443/tcp || true; fi
@@ -68,20 +69,12 @@ if ! command -v caddy >/dev/null; then
   retry $APT install -y caddy
 fi
 
-# --- App. User data may have fetched a tarball; make it a git checkout so the auto-deploy
-# timer can pull updates.
-if [ ! -d "$APP/.git" ]; then
-  if [ -f "$APP/package.json" ]; then
-    git -C "$APP" init -q
-    git -C "$APP" remote add origin "$REPO"
-    retry git -C "$APP" fetch -q origin "$BRANCH"
-    git -C "$APP" reset -q --hard FETCH_HEAD
-    git -C "$APP" checkout -q -B "$BRANCH"
-  else
-    retry git clone --branch "$BRANCH" "$REPO" "$APP"
-  fi
-fi
+# --- App. The bootstrap normally unpacked the code already. The auto-deploy timer turns it
+# into a git checkout on its first run that can read the repo, so a private repo only means
+# no auto-deploy.
+if [ ! -f "$APP/package.json" ]; then retry git clone --branch "$BRANCH" "$REPO" "$APP"; fi
 cd "$APP"
+[ -d .git ] || echo "$BRANCH" > .deploy-branch
 IP=$(curl -fs http://169.254.169.254/v1/interfaces/0/ipv4/address || hostname -I | awk '{print $1}')
 HOST="$(echo "$IP" | tr . -).sslip.io"
 cp /root/unbothered.env .env
