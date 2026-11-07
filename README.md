@@ -179,7 +179,7 @@ docs/     pitch deck, full slides, cover, architecture image, lablab submission 
 ## Honest notes
 
 - **The web the agent visits is a sandbox web** served by the control plane (three stores, an intranet, a scam outlet), so every trap is reproducible and no real shop or card is involved. Pointing the proxy at real, allowlisted sites is a configuration change.
-- **The Capybara Test numbers and the demo footage** come from a development instance of this same build (gVisor tubs, Vultr Serverless Inference). The Vultr VM runs the test on its first boot and shows its own results on its Capybara Test page.
+- **The Capybara Test numbers and the demo footage** come from a development instance of this same build (gVisor tubs, Vultr Serverless Inference). The Vultr VM runs the test on its first boot and shows its own results on its Capybara Test page. Its run (Seattle, 5.4 minutes) reproduced the result: a typical agent was hit in 9 of 20 errands (the count varies a little run to run) and gave the card to all 4 fake pop-ups, while Unbothered was hit in 0 and finished all 20.
 - **Also used:** gVisor, Docker, Playwright, Node.js, TypeScript, React, Caddy. Narration in the video is by ElevenLabs.
 
 MIT licensed.
